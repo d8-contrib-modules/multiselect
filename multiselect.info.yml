@@ -1,0 +1,9 @@
+name: Multiselect
+description: 'Defines a CCK multiple selection field widget, to allow easier multi-selection for users.'
+package: Field types
+type: module
+version: VERSION
+core: 8.x
+dependencies:
+  - options
+configure: multiselect.admin_settings

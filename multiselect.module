@@ -1,0 +1,189 @@
+<?php
+
+/**
+ * @file
+ * Allows users to select multiple items in an easier way than the normal node-reference widget.
+ */
+
+use Drupal\Component\Utility\String;
+use Drupal\Core\Render\Element;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Template\Attribute;
+use Drupal\Component\Utility\SafeMarkup;
+
+/**
+ * Implements hook_help().
+ */
+function multiselect_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.multiselect':
+      $output = '';
+      $output .= '<p>' . t('Provides a CCK and Form API widget for editing fields that allows users to select from a list of options in a left box and have them visually moved into the right box when options are chosen.') . '</p>';
+      $output .= '<h3>' . t('Methods of Implementing a Multiselect Widget') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt><h5>' . t('Method 1: Using CCK') . '</h5></dt>';
+      $output .= '<dd>' . t('When creating a new content field, select "Multiselect" as your widget type. You can use Multiselect on fields of type "list", "list_text", "list_number", "node_reference", "taxonomy_term_reference", and "user_reference".') . '</dd>';
+      $output .= '<dt><h5>' . t('Method 2: Coding Your Own Module') . '</h5></dt>';
+      $output .= '<dd>' . t('If you\'re developing a custom module and wish to use the Multiselect widget in place of a traditional "select" widget, you may use the Drupal 8 Form API.') . '</dd>';
+      $output .= '</dl>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_page_build().
+ */
+function multiselect_page_build(&$page) {
+  $config = \Drupal::config('multiselect.settings');
+  $page['#attached']['js'][] = array(
+    'data' => array(
+      'multiselect' => array('widths' => $config->get('multiselect.widths')),
+    ),
+    'type' => 'setting',
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function multiselect_theme() {
+  return array(
+    'multiselect' => array(
+      'arguments' => array('element' => NULL),
+      'render element' => 'element',
+      'template' => 'multiselect',
+    ),
+  );
+}
+
+/**
+ * Implements hook_element_info().
+ */
+function multiselect_element_info() {
+  $types['multiselect'] = array(
+    '#theme' => 'multiselect',
+    '#input' => TRUE,
+    '#multiple' => TRUE,
+    '#default_value' => NULL,
+    '#process' => array('form_process_select', 'ajax_process_form'),
+    '#theme_wrappers' => array('form_element'),
+    '#attached' => array(
+      'library' => array('multiselect/drupal.multiselect'),
+    ),
+  );
+  return $types;
+}
+
+/**
+ * Prepares variables for multiselect element templates.
+ *
+ * Default template: multiselect.html.twig.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - element: An associative array containing the properties of the element.
+ *     Properties used: #title, #value, #options, #description, #extra,
+ *     #multiple, #required, #name, #attributes, #size.
+ */
+function template_preprocess_multiselect(&$variables) {
+  $element = $variables['element'];
+  Element::setAttributes($element, array('id', 'name', 'size', 'required'));
+  _form_set_attributes($element, array('form-multiselect'));
+
+  $variables['multiselect'] = array(
+    'available' => array(
+      'id' => $element['#attributes']['id'] . '-available',
+      'label' => t('Available Options'),
+      'attributes' => array(
+        'id' => $element['#attributes']['id'] . '-available',
+      ),
+      'options' => multiselect_get_options('available', $element),
+    ),
+    'selected' => array(
+      'id' => $element['#attributes']['id'],
+      'label' => t('Selected Options'),
+      'attributes' => $element['#attributes'],
+      'options' => multiselect_get_options('selected', $element),
+    ),
+    'labels' => array(
+      'add' => t('Add'),
+      'remove' => t('Remove'),
+    ),
+  );
+  // Prepare attributes for available select.
+  foreach (array('multiple', 'required', 'class') as $key) {
+    if (isset($element['#attributes'][$key])) {
+      $variables['multiselect']['available']['attributes'][$key] = $element['#attributes'][$key];
+    }
+  }
+  // Prepare attributes.
+  $multiselect = &$variables['multiselect'];
+  foreach (array('available', 'selected') as $key) {
+    $multiselect[$key]['attributes']['class'][] = 'multiselect-' . $key;
+    $multiselect[$key]['attributes']['class'][] = 'form-select';
+    if (isset($multiselect[$key]['attributes']) && !($multiselect[$key]['attributes'] instanceof Attribute)) {
+      if ($multiselect[$key]['attributes']) {
+        $multiselect[$key]['attributes'] = new Attribute($multiselect[$key]['attributes']);
+      }
+    }
+  }
+}
+
+/**
+ * Helper function for get multiselect options.
+ *
+ * @param string $type
+ *   The type of options.
+ * @param $element
+ *   An associative array containing the properties of the element.
+ * @param $choices
+ *   Mixed: Either an associative array of items to list as choices, or an
+ *   object with an 'option' member that is an associative array. This
+ *   parameter is only used internally and should not be passed.
+ *
+ * @return
+ *   An HTML string of options for the multiselect form element.
+ */
+function multiselect_get_options($type, $element, $choices = NULL) {
+  if (!isset($choices)) {
+    if (empty($element['#options'])) {
+      return '';
+    }
+    $choices = $element['#options'];
+  }
+  // array_key_exists() accommodates the rare event where $element['#value'] is NULL.
+  // isset() fails in this situation.
+  $value_valid = isset($element['#value']) || array_key_exists('#value', $element);
+  $value_is_array = $value_valid && is_array($element['#value']);
+  // Check if the element is multiple select and no value has been selected.
+  $empty_value = (empty($element['#value']) && !empty($element['#multiple']));
+  $options = '';
+  foreach ($choices as $key => $choice) {
+    if (is_array($choice)) {
+      $options .= '<optgroup label="' . String::checkPlain($key) . '">';
+      $options .= multiselect_get_options($type, $element, $choice);
+      $options .= '</optgroup>';
+    }
+    elseif (is_object($choice) && isset($choice->option)) {
+      $options .= multiselect_get_options($type, $element, $choice->option);
+    }
+    else {
+      $key = (string) $key;
+      $empty_choice = $empty_value && $key == '_none';
+      switch ($type) {
+        case 'available':
+          if (!($value_valid && ((!$value_is_array && (string) $element['#value'] === $key || ($value_is_array && in_array($key, $element['#value']))) || $empty_choice))) {
+            $options .= '<option value="' . String::checkPlain($key) . '">' . String::checkPlain($choice) . '</option>';
+          }
+          break;
+
+        case 'selected':
+          if ($value_valid && ((!$value_is_array && (string) $element['#value'] === $key || ($value_is_array && in_array($key, $element['#value']))) || $empty_choice)) {
+            $options .= '<option value="' . String::checkPlain($key) . '" selected="selected">' . String::checkPlain($choice) . '</option>';
+          }
+          break;
+      }
+    }
+  }
+  return SafeMarkup::set($options);
+}

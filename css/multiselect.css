@@ -1,0 +1,62 @@
+/**
+ * @file
+ * Styles for the multiselect module.
+ */
+
+.multiselect-wrapper + div.description {
+  clear: both;
+}
+.multiselect-wrapper select.form-multiselect {
+  padding: 2px;
+  width: 250px;
+  border: 1px solid #ccc;
+  border-top-color: #999;
+  background: #fff;
+  color: #333;
+}
+.multiselect-wrapper select.form-multiselect:focus {
+  border-color: #ace;
+  color: #000;
+}
+.multiselect-wrapper label {
+  color: #999;
+  font-weight: bold;
+}
+div.multiselect-available,
+div.multiselect-selected {
+  float: left;
+  width: 250px;
+}
+.form-disabled select.form-multiselect {
+  background-color: #eee;
+  color: #777;
+}
+.multiselect-btns > ul {
+  float: left;
+  margin: 10px 10px 0px 20px;
+  padding: 0px;
+  list-style: none;
+}
+.multiselect-btns > ul > li.multiselect-add,
+.multiselect-btns > ul > li.multiselect-remove {
+  display: block;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  width: 33px;
+  height: 38px;
+  background: url(../images/remove.png) no-repeat 0 0;
+  text-indent: -9999px;
+}
+.multiselect-btns > ul > li.multiselect-add {
+  margin-bottom: 15px;
+  background: url(../images/add.png) no-repeat 0 0;
+}
+.multiselect-btns > ul > li.multiselect-add:hover,
+.multiselect-btns > ul > li.multiselect-remove:hover {
+  background-position: -33px 0;
+}
+.multiselect-btns > ul > li.multiselect-add:active,
+.multiselect-btns > ul > li.multiselect-remove:active {
+  background-position: -66px 0;
+}
