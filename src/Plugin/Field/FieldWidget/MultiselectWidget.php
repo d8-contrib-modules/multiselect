@@ -42,8 +42,12 @@ class MultiselectWidget extends OptionsWidgetBase {
     $multiple = $this->fieldDefinition->getFieldStorageDefinition()->isMultiple();
     $this->has_value = isset($items[0]->{$this->column});
 
-    $options = $this->getOptions($items[$delta]);
-    $selected = $this->getSelectedOptions($items);
+    $options = [];
+    $item = $items->get($delta);
+    if (!empty($item)) {
+      $options = $this->getOptions($item);
+      $selected = $this->getSelectedOptions($items);
+    }
 
     $element += array(
       '#type' => 'multiselect',
@@ -64,7 +68,7 @@ class MultiselectWidget extends OptionsWidgetBase {
    * @param array $form_state
    *   The form state.
    */
-  public static function validateElement(array $element, FormStateInterface &$form_state) {
+  public static function validateElement(array $element, FormStateInterface $form_state) {
     parent::validateElement($element, $form_state);
     // Massage submitted form values.
     // Drupal\Core\Field\WidgetBase::submit() expects values as
