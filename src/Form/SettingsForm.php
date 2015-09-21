@@ -8,6 +8,7 @@
 namespace Drupal\multiselect\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Form builder for the admin display defaults page.
@@ -24,7 +25,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, array &$form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildForm($form, $form_state);
 
     $config = $this->config('multiselect.settings');
@@ -45,12 +46,19 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, array &$form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->config('multiselect.settings')
       ->set('multiselect.widths', $form_state['values']['multiselect_widths'])
       ->save();
 
     parent::submitForm($form, $form_state);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getEditableConfigNames() {
+    return ['multiselect.settings'];
   }
 
 }

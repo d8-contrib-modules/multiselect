@@ -57,24 +57,6 @@ function multiselect_theme() {
 }
 
 /**
- * Implements hook_element_info().
- */
-function multiselect_element_info() {
-  $types['multiselect'] = array(
-    '#theme' => 'multiselect',
-    '#input' => TRUE,
-    '#multiple' => TRUE,
-    '#default_value' => NULL,
-    '#process' => array('form_process_select', 'ajax_process_form'),
-    '#theme_wrappers' => array('form_element'),
-    '#attached' => array(
-      'library' => array('multiselect/drupal.multiselect'),
-    ),
-  );
-  return $types;
-}
-
-/**
  * Prepares variables for multiselect element templates.
  *
  * Default template: multiselect.html.twig.
@@ -88,7 +70,7 @@ function multiselect_element_info() {
 function template_preprocess_multiselect(&$variables) {
   $element = $variables['element'];
   Element::setAttributes($element, array('id', 'name', 'size', 'required'));
-  _form_set_attributes($element, array('form-multiselect'));
+  //_form_set_attributes($element, array('form-multiselect'));
 
   $variables['multiselect'] = array(
     'available' => array(
