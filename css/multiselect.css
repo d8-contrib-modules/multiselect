@@ -60,3 +60,7 @@ div.multiselect-selected {
 .multiselect-btns > ul > li.multiselect-remove:active {
   background-position: -66px 0;
 }
+
+.multiselect-btns :after {
+  clear: both;
+}
