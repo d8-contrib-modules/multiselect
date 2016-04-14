@@ -3,9 +3,10 @@
  * Styles for the multiselect module.
  */
 
-.multiselect-wrapper + div.description {
+.multiselect-wrapper:after {
   clear: both;
 }
+
 .multiselect-wrapper select.form-multiselect {
   padding: 2px;
   width: 250px;
