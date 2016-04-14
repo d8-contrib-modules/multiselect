@@ -31,7 +31,6 @@ use Drupal\Core\Form\FormStateInterface;
  * )
  */
 class MultiselectWidget extends OptionsWidgetBase {
-
   /**
    * {@inheritdoc}
    */
@@ -39,23 +38,16 @@ class MultiselectWidget extends OptionsWidgetBase {
     $element = parent::formElement($items, $delta, $element, $form, $form_state);
     // Prepare some properties for the child methods to build the actual form element.
     $this->required = $element['#required'];
-    $multiple = $this->fieldDefinition->getFieldStorageDefinition()->isMultiple();
+    $this->multiple = $this->fieldDefinition->getFieldStorageDefinition()->isMultiple();
     $this->has_value = isset($items[0]->{$this->column});
-
-    $options = [];
-    $item = $items->get($delta);
-    if (!empty($item)) {
-      $options = $this->getOptions($item);
-      $selected = $this->getSelectedOptions($items);
-    }
 
     $element += array(
       '#type' => 'multiselect',
       '#size' => $this->getSetting('size'),
-      '#options' => $options,
-      '#multiple' => $multiple,
-      '#key_column' => $this->column,
-      '#default_value' => $selected,
+      '#options' => $this->getOptions($items->getEntity()),
+      '#default_value' => $this->getSelectedOptions($items, $delta),
+      // Do not display a 'multiple' select box if there is only one option.
+      '#multiple' => $this->multiple && count($this->options) > 1,
     );
     return $element;
   }
@@ -69,6 +61,7 @@ class MultiselectWidget extends OptionsWidgetBase {
    *   The form state.
    */
   public static function validateElement(array $element, FormStateInterface $form_state) {
+    // @todo fix multiselect validation.
     parent::validateElement($element, $form_state);
     // Massage submitted form values.
     // Drupal\Core\Field\WidgetBase::submit() expects values as
@@ -94,7 +87,7 @@ class MultiselectWidget extends OptionsWidgetBase {
     foreach ($values as $value) {
       $items [] = array($element ['#key_column'] => $value);
     }
-    NestedArray::setValue($form_state['values'], $element['#parents'], $items);
+    $form_state->setValueForElement($element, $items);
   }
 
 }

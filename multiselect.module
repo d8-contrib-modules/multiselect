@@ -70,10 +70,13 @@ function multiselect_theme() {
 function template_preprocess_multiselect(&$variables) {
   $element = $variables['element'];
   Element::setAttributes($element, array('id', 'name', 'size', 'required'));
-  //_form_set_attributes($element, array('form-multiselect'));
 
   $available_options = multiselect_get_options('available', $element);
   $available_size = min(count($available_options), 10);
+
+  $selected_options = multiselect_get_options('selected', $element);
+  $selected_size = min(count($selected_options), 10);
+  $total_size = $available_size + $selected_size;
 
   $variables['multiselect'] = array(
     'available' => array(
@@ -81,7 +84,7 @@ function template_preprocess_multiselect(&$variables) {
       'label' => t('Available Options'),
       'attributes' => array(
         'id' => $element['#attributes']['id'] . '-available',
-        'size' => $available_size,
+        'size' => $total_size,
       ),
       'options' => $available_options,
     ),
@@ -89,17 +92,22 @@ function template_preprocess_multiselect(&$variables) {
       'id' => $element['#attributes']['id'],
       'label' => t('Selected Options'),
       'attributes' => $element['#attributes'],
-      'options' => multiselect_get_options('selected', $element),
+      'options' => $selected_options,
     ),
     'labels' => array(
       'add' => t('Add'),
       'remove' => t('Remove'),
     ),
   );
+
+  // Prepare selected attributes.
+  $variables['multiselect']['selected']['attributes']['size'] = $total_size;
+
   // Prepare attributes for available select.
   foreach (array('multiple', 'required', 'class') as $key) {
-    if (isset($element['#attributes'][$key])) {
-      $variables['multiselect']['available']['attributes'][$key] = $element['#attributes'][$key];
+    $element_key = "#{$key}";
+    if (isset($element[$element_key])) {
+      $variables['multiselect']['available']['attributes'][$key] = $element[$element_key];
     }
   }
   // Prepare attributes.
