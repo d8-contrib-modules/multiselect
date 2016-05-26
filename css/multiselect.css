@@ -3,9 +3,10 @@
  * Styles for the multiselect module.
  */
 
-.multiselect-wrapper + div.description {
+.multiselect-wrapper:after {
   clear: both;
 }
+
 .multiselect-wrapper select.form-multiselect {
   padding: 2px;
   width: 250px;
@@ -59,4 +60,8 @@ div.multiselect-selected {
 .multiselect-btns > ul > li.multiselect-add:active,
 .multiselect-btns > ul > li.multiselect-remove:active {
   background-position: -66px 0;
+}
+
+.multiselect-btns :after {
+  clear: both;
 }

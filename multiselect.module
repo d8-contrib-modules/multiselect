@@ -9,7 +9,7 @@ use Drupal\Component\Utility\String;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Template\Attribute;
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\multiselect\Element\Multiselect;
 
 /**
  * Implements hook_help().
@@ -70,7 +70,13 @@ function multiselect_theme() {
 function template_preprocess_multiselect(&$variables) {
   $element = $variables['element'];
   Element::setAttributes($element, array('id', 'name', 'size', 'required'));
-  //_form_set_attributes($element, array('form-multiselect'));
+
+  $available_options = Multiselect::getOptions('available', $element);
+  $available_size = min(count($available_options), 10);
+
+  $selected_options = Multiselect::getOptions('selected', $element);
+  $selected_size = min(count($selected_options), 10);
+  $total_size = $available_size + $selected_size;
 
   $variables['multiselect'] = array(
     'available' => array(
@@ -78,31 +84,37 @@ function template_preprocess_multiselect(&$variables) {
       'label' => t('Available Options'),
       'attributes' => array(
         'id' => $element['#attributes']['id'] . '-available',
+        'size' => $total_size,
       ),
-      'options' => multiselect_get_options('available', $element),
+      'options' => $available_options,
     ),
     'selected' => array(
       'id' => $element['#attributes']['id'],
       'label' => t('Selected Options'),
       'attributes' => $element['#attributes'],
-      'options' => multiselect_get_options('selected', $element),
+      'options' => $selected_options,
     ),
     'labels' => array(
       'add' => t('Add'),
       'remove' => t('Remove'),
     ),
   );
+
+  // Prepare selected attributes.
+  $variables['multiselect']['selected']['attributes']['size'] = $total_size;
+
   // Prepare attributes for available select.
   foreach (array('multiple', 'required', 'class') as $key) {
-    if (isset($element['#attributes'][$key])) {
-      $variables['multiselect']['available']['attributes'][$key] = $element['#attributes'][$key];
+    $element_key = "#{$key}";
+    if (isset($element[$element_key])) {
+      $variables['multiselect']['available']['attributes'][$key] = $element[$element_key];
     }
   }
   // Prepare attributes.
   $multiselect = &$variables['multiselect'];
   foreach (array('available', 'selected') as $key) {
     $multiselect[$key]['attributes']['class'][] = 'multiselect-' . $key;
-    $multiselect[$key]['attributes']['class'][] = 'form-select';
+    $multiselect[$key]['attributes']['class'][] = 'form-multiselect';
     if (isset($multiselect[$key]['attributes']) && !($multiselect[$key]['attributes'] instanceof Attribute)) {
       if ($multiselect[$key]['attributes']) {
         $multiselect[$key]['attributes'] = new Attribute($multiselect[$key]['attributes']);
@@ -111,61 +123,3 @@ function template_preprocess_multiselect(&$variables) {
   }
 }
 
-/**
- * Helper function for get multiselect options.
- *
- * @param string $type
- *   The type of options.
- * @param $element
- *   An associative array containing the properties of the element.
- * @param $choices
- *   Mixed: Either an associative array of items to list as choices, or an
- *   object with an 'option' member that is an associative array. This
- *   parameter is only used internally and should not be passed.
- *
- * @return
- *   An HTML string of options for the multiselect form element.
- */
-function multiselect_get_options($type, $element, $choices = NULL) {
-  if (!isset($choices)) {
-    if (empty($element['#options'])) {
-      return '';
-    }
-    $choices = $element['#options'];
-  }
-  // array_key_exists() accommodates the rare event where $element['#value'] is NULL.
-  // isset() fails in this situation.
-  $value_valid = isset($element['#value']) || array_key_exists('#value', $element);
-  $value_is_array = $value_valid && is_array($element['#value']);
-  // Check if the element is multiple select and no value has been selected.
-  $empty_value = (empty($element['#value']) && !empty($element['#multiple']));
-  $options = '';
-  foreach ($choices as $key => $choice) {
-    if (is_array($choice)) {
-      $options .= '<optgroup label="' . String::checkPlain($key) . '">';
-      $options .= multiselect_get_options($type, $element, $choice);
-      $options .= '</optgroup>';
-    }
-    elseif (is_object($choice) && isset($choice->option)) {
-      $options .= multiselect_get_options($type, $element, $choice->option);
-    }
-    else {
-      $key = (string) $key;
-      $empty_choice = $empty_value && $key == '_none';
-      switch ($type) {
-        case 'available':
-          if (!($value_valid && ((!$value_is_array && (string) $element['#value'] === $key || ($value_is_array && in_array($key, $element['#value']))) || $empty_choice))) {
-            $options .= '<option value="' . String::checkPlain($key) . '">' . String::checkPlain($choice) . '</option>';
-          }
-          break;
-
-        case 'selected':
-          if ($value_valid && ((!$value_is_array && (string) $element['#value'] === $key || ($value_is_array && in_array($key, $element['#value']))) || $empty_choice)) {
-            $options .= '<option value="' . String::checkPlain($key) . '" selected="selected">' . String::checkPlain($choice) . '</option>';
-          }
-          break;
-      }
-    }
-  }
-  return SafeMarkup::set($options);
-}
