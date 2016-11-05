@@ -21,13 +21,10 @@ use Drupal\multiselect\Element\Multiselect;
  *   id = "multiselect",
  *   label = @Translation("Multiselect"),
  *   field_types = {
- *     "list_text",
+ *     "list_string",
  *     "list_float",
  *     "list_integer",
- *     "user_reference",
- *     "node_reference",
  *     "entity_reference",
- *     "taxonomy_term_reference"
  *   },
  *   multiple_values = TRUE
  * )
