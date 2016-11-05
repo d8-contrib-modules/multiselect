@@ -5,7 +5,6 @@
  * Allows users to select multiple items in an easier way than the normal node-reference widget.
  */
 
-use Drupal\Component\Utility\String;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Template\Attribute;
