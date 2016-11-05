@@ -28,6 +28,10 @@ div.multiselect-selected {
   float: left;
   width: 250px;
 }
+[dir="rtl"] div.multiselect-available,
+[dir="rtl"] div.multiselect-selected {
+  float: right;
+}
 .form-disabled select.form-multiselect {
   background-color: #eee;
   color: #777;
@@ -37,6 +41,10 @@ div.multiselect-selected {
   margin: 10px 10px 0px 20px;
   padding: 0px;
   list-style: none;
+}
+[dir="rtl"] .multiselect-btns > ul {
+  float: right;
+  margin: 10px 20px 0px 10px;
 }
 .multiselect-btns > ul > li.multiselect-add,
 .multiselect-btns > ul > li.multiselect-remove {
@@ -49,15 +57,22 @@ div.multiselect-selected {
   background: url(../images/remove.png) no-repeat 0 0;
   text-indent: -9999px;
 }
+[dir="rtl"] .multiselect-btns > ul > li.multiselect-add,
+[dir="rtl"] .multiselect-btns > ul > li.multiselect-remove {
+  background: url(../images/remove-rtl.png) no-repeat 0 0;
+}
 .multiselect-btns > ul > li.multiselect-add {
   margin-bottom: 15px;
   background: url(../images/add.png) no-repeat 0 0;
+}
+[dir="rtl"] .multiselect-btns > ul > li.multiselect-add {
+  background: url(../images/add-rtl.png) no-repeat 0 0;
 }
 .multiselect-btns > ul > li.multiselect-add:hover,
 .multiselect-btns > ul > li.multiselect-remove:hover {
   background-position: -33px 0;
 }
-.multiselect-btns > ul > li.multiselect-add:active,
+.multiselect-btns > ul > li.mu^^ltiselect-add:active,
 .multiselect-btns > ul > li.multiselect-remove:active {
   background-position: -66px 0;
 }
