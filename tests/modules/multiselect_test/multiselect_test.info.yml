@@ -1,0 +1,7 @@
+name: 'Multiselect test module'
+description: 'Provides a test page with a multiselect form element.'
+type: module
+core: 8.x
+package: Testing
+dependencies:
+  - multiselect
